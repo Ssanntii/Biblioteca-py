@@ -4,7 +4,7 @@ import os
 def clear():
     os.system('cls' if os.name== 'nt' else 'clear')
 
-def insert_user(nombre,apellido,dni,telefono,email):
+def insert_user(nombre,apellido,dni,telefono,email):dsasdadsda
     try:
         con=mysql.connect(
         host="localhost",
