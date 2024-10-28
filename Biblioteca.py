@@ -7,7 +7,7 @@ def clear():
 def insert_user(nombre,apellido,dni,telefono,email):
     try:
         con=mysql.connect(
-        host="localhost",
+        host="localhost",valenzika
         port=3306,
         user="root",
         database="biblioteca")
