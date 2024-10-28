@@ -72,6 +72,29 @@ def insert_genre(genero,descripcion):
         if con.is_connected():
             cur.close()
             con.close()
+
+def insert_loan(libro,usuario):
+    try:
+        con=mysql.connect(
+        host="localhost",
+        port=3306,
+        user="root",
+        database="biblioteca")
+
+        if con.is_connected():
+            cur=con.cursor()
+            query="""INSERT INTO PRESTAMOS(libro_id,usuario_id) VALUES (%s,%s)"""
+            values=(libro,usuario)
+            cur.execute(query,values)
+            con.commit()
+            print("Datos cargados correctamente.")
+    except Error as e:
+        print(f"Error al insertar datos: {e}")
+
+    finally:
+        if con.is_connected():
+            cur.close()
+            con.close()
             
 def main_menu():
     clear()
@@ -116,8 +139,8 @@ def menu_agregar():
             else:
                 insert_book(titulo,autor,genero,ano_publicacion)
             break
-     elif opcion == '3':
-            while True:
+    elif opcion == '3':
+        while True:
             genero=input("Ingrese el genero: ")
             descripcion=("Ingrese una descripcion: ")
             if genero is "" :
@@ -125,6 +148,17 @@ def menu_agregar():
             else:
                 insert_genre(genero, descripcion)
                 break
+    elif opcion == '4':
+        while True:
+            libro=input("Ingrese el ID del libro: ")
+            usuario=("Ingrese el ID de usuario: ")
+            if libro is "" or usuario is "":
+                print("Datos invalidos, por favor ingrese de nuevo")
+            else:
+                insert_loan(libro,usuario)
+              break
+    elif opcion == '5':
+        return
     
 def main():
     while True:
