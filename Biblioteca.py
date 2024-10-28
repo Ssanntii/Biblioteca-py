@@ -59,7 +59,17 @@ def menu_agregar():
             else:
                 insert_user(nombre,apellido,dni,telefono,email)
                 break
-
+    elif opcion == '2':
+        while True: 
+            titulo=input("Ingrese el titulo del libro: ")
+            autor=input("Ingrese el autor del libro: ")
+            genero=input("Ingrese el id del genero: (1)Drama (2)Terror (3)Ciencia-Ficcion (4)Fantasia (5)Romance (6)Misterio (7)Aventura (8)Historico: ")
+            ano_publicacion=("Ingrese el año de publicacin: ")
+            if titulo is "" or autor is "" or genero is "":
+                print("Datos invalidos, por favor ingrese de nuevo.")
+            else:
+                insert_book(titulo,autor,genero,ano_publicacion)
+            break
 
 def main():
     while True:
