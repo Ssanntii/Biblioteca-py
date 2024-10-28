@@ -27,6 +27,29 @@ def insert_user(nombre,apellido,dni,telefono,email):
             cur.close()
             con.close()
 
+def insert_book(titulo,autor,genero,ano_publicacion):
+    try:
+        con=mysql.connect(
+        host="localhost",
+        port=3306,
+        user="root",
+        database="biblioteca")
+
+        if con.is_connected():
+            cur=con.cursor()
+            query="""INSERT INTO INVENTARIO(titulo,autor,genero,ano_publicacion) VALUES (%s,%s,%s,%s)"""
+            values=(titulo,autor,genero,ano_publicacion)
+            cur.execute(query,values)
+            con.commit()
+            print("Datos cargados correctamente.")
+    except Error as e:
+        print(f"Error al insertar datos: {e}")
+
+    finally:
+        if con.is_connected():
+            cur.close()
+            con.close()
+
 def main_menu():
     clear()
     print("====== MENÚ ======")
