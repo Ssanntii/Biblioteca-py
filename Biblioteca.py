@@ -19,7 +19,7 @@ def insert_user(nombre,apellido,dni,telefono,email):
             cur.execute(query,values)
             con.commit()
             print("Datos cargados correctamente.")
-    except Error as e:
+    except Exception as e:
         print(f"Error al insertar datos: {e}")
 
     finally:
@@ -27,7 +27,7 @@ def insert_user(nombre,apellido,dni,telefono,email):
             cur.close()
             con.close()
 
-def insert_book(titulo,autor,genero,ano_publicacion):
+def insert_book(titulo,autor,genero,año_publicacion):
     try:
         con=mysql.connect(
         host="localhost",
@@ -37,12 +37,12 @@ def insert_book(titulo,autor,genero,ano_publicacion):
 
         if con.is_connected():
             cur=con.cursor()
-            query="""INSERT INTO INVENTARIO(titulo,autor,genero,ano_publicacion) VALUES (%s,%s,%s,%s)"""
-            values=(titulo,autor,genero,ano_publicacion)
+            query="""INSERT INTO INVENTARIO(titulo,autor,genero_id,año_publicacion) VALUES (%s,%s,%s,%s)"""
+            values=(titulo,autor,genero,año_publicacion)
             cur.execute(query,values)
             con.commit()
             print("Datos cargados correctamente.")
-    except Error as e:
+    except Exception as e:
         print(f"Error al insertar datos: {e}")
 
     finally:
@@ -65,7 +65,7 @@ def insert_genre(genero,descripcion):
             cur.execute(query,values)
             con.commit()
             print("Datos cargados correctamente.")
-    except Error as e:
+    except Exception as e:
         print(f"Error al insertar datos: {e}")
 
     finally:
@@ -88,7 +88,7 @@ def insert_loan(libro,usuario):
             cur.execute(query,values)
             con.commit()
             print("Datos cargados correctamente.")
-    except Error as e:
+    except Exception as e:
         print(f"Error al insertar datos: {e}")
 
     finally:
@@ -133,12 +133,12 @@ def menu_agregar():
             titulo=input("Ingrese el titulo del libro: ")
             autor=input("Ingrese el autor del libro: ")
             genero=input("Ingrese el id del genero: (1)Drama (2)Terror (3)Ciencia-Ficcion (4)Fantasia (5)Romance (6)Misterio (7)Aventura (8)Historico: ")
-            ano_publicacion=("Ingrese el año de publicacin: ")
+            año_publicacion=input("Ingrese el año de publicacion: ")
             if titulo is "" or autor is "" or genero is "":
                 print("Datos invalidos, por favor ingrese de nuevo.")
             else:
-                insert_book(titulo,autor,genero,ano_publicacion)
-            break
+                insert_book(titulo,autor,genero,año_publicacion)
+                break
     elif opcion == '3':
         while True:
             genero=input("Ingrese el genero: ")
@@ -156,7 +156,7 @@ def menu_agregar():
                 print("Datos invalidos, por favor ingrese de nuevo")
             else:
                 insert_loan(libro,usuario)
-              break
+                break
     elif opcion == '5':
         return
     
