@@ -93,10 +93,15 @@ def menu_agregar():
             else:
                 insert_book(titulo,autor,genero,ano_publicacion)
             break
-        elif opcion == '3':
-        while True:
+     elif opcion == '3':
+            while True:
             genero=input("Ingrese el genero: ")
             descripcion=("Ingrese una descripcion: ")
+            if genero is "" :
+                print("Datos invalidos, por favor ingrese de nuevo")
+            else:
+                insert_genre(genero, descripcion)
+                break
     
 def main():
     while True:
