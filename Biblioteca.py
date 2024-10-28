@@ -50,6 +50,29 @@ def insert_book(titulo,autor,genero,ano_publicacion):
             cur.close()
             con.close()
 
+def insert_genre(genero,descripcion):
+    try:
+        con=mysql.connect(
+        host="localhost",
+        port=3306,
+        user="root",
+        database="biblioteca")
+
+        if con.is_connected():
+            cur=con.cursor()
+            query="""INSERT INTO GENEROS(genero,descripcion) VALUES (%s,%s)"""
+            values=(genero,descripcion)
+            cur.execute(query,values)
+            con.commit()
+            print("Datos cargados correctamente.")
+    except Error as e:
+        print(f"Error al insertar datos: {e}")
+
+    finally:
+        if con.is_connected():
+            cur.close()
+            con.close()
+            
 def main_menu():
     clear()
     print("====== MENÚ ======")
