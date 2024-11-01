@@ -162,19 +162,22 @@ def genre():
         database="biblioteca")
 
         if con.is_connected():
-            cur=con.cursor()
-            cur.execute("SELECT * FROM GENEROS")
-            row=cur.fetchall()
-            print("==========================")           
-            print("|| ID ||    GENERO      ||")
-            print("==========================")
-            for elemento in row:
-                print(f"|| {elemento[0]}  || {elemento[1]}||")
+            while True:
+                cur=con.cursor()
+                cur.execute("SELECT * FROM GENEROS")
+                row=cur.fetchall()
+                print("==========================")           
+                print("|| ID ||    GENERO      ||")
                 print("==========================")
+                for elemento in row:
+                    print(f"|| {elemento[0]}  || {elemento[1]}||")
+                    print("==========================")
 
-            genero=input("Ingrese el id del genero: ")
-            
-            return genero
+                genero=input("Ingrese el id del genero: ")
+                if genero is "":
+                    input("Género inválido, por favor ingrese de nuevo.")
+                else:
+                    return genero
 
     except Exception as e:
         print(f"Error al insertar datos: {e}")
@@ -385,6 +388,7 @@ def menu_agregar():
         if opcion=='1':
             while True:
                 clear()
+                print("             ====== AGREGAR USUARIO ======")
                 nombre=input("Ingrese el nombre del usuario: ")
                 nombre=nombre.capitalize()
                 apellido=input("Ingrese el apellido del usuario: ")
@@ -405,6 +409,7 @@ def menu_agregar():
         elif opcion == '2':
             while True:
                 clear()
+                print("             ====== AGREGAR LIBRO ======")
                 titulo=input("Ingrese el titulo del libro: ")
                 titulo=titulo.capitalize()
                 autor=input("Ingrese el autor del libro: ")
@@ -422,6 +427,7 @@ def menu_agregar():
                     else:
                         break
         elif opcion == '3':
+            print("             ====== AGREGAR GÉNERO ======")
             genero=input("Ingrese el genero: ")
             genero=genero.capitalize()
             descripcion=input("Ingrese una descripcion: ")
@@ -432,10 +438,12 @@ def menu_agregar():
                 insert_genre(genero, descripcion)
                 break
         elif opcion == '4':
-            libro=traer_libros()
-            usuario=traer_usuarios()
-            insert_loan(libro,usuario)
-            break
+            while True:
+                print("             ====== AGREGAR PRÉSTAMO ======")
+                libro=traer_libros()
+                usuario=traer_usuarios()
+                insert_loan(libro,usuario)
+                break
         elif opcion == '5':
             return
         else:
