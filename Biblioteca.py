@@ -1,302 +1,241 @@
 import mysql.connector as mysql
 import os
 from datetime import datetime, timedelta
+from mysql.connector import Error
+
+host='localhost'
+port=3306
+user='root'
+database='biblioteca'
+password=''
+
+def con(query, values=[]):
+    try:
+        con = mysql.connect(
+                host=host,
+                port=port,
+                user=user,
+                database=database,
+                password=password)
+        cur = con.cursor()
+        cur.execute(query,values)
+        res=cur.fetchall()
+       
+        con.commit()
+        if len(res)>0:
+            return res
+        return None
+    except Error as e:
+        input(f"Error al insertar datos: {e}")
+    finally:
+        cur.close()
+        con.close()
+
+def crear_tablas():
+    query="""
+CREATE TABLE IF NOT EXISTS GENEROS(
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+GENERO VARCHAR(40) NOT NULL,
+DESCRIPCION TEXT)
+
+CREATE TABLE IF NOT EXISTS USUARIOS(
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+NOMBRE VARCHAR(40) NOT NULL,
+APELLIDO VARCHAR(40) NOT NULL,
+DNI VARCHAR(8) NOT NULL UNIQUE,
+TELEFONO VARCHAR(20),
+EMAIL VARCHAR(100),
+CREADO_EL TIMESTAMP DEFAULT NOW(),
+ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
+ESTADO TINYINT DEFAULT 1)
+
+CREATE TABLE IF NOT EXISTS INVENTARIO(
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+TITULO VARCHAR(80) NOT NULL,
+AUTOR VARCHAR(80) NOT NULL,
+GENERO_ID INT NOT NULL,
+AÑO_PUBLICACION VARCHAR(4),
+CREADO_EL TIMESTAMP DEFAULT NOW(),
+ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
+ESTADO TINYINT DEFAULT 1,
+CONSTRAINT FK_INVENTARIO_GENEROS FOREIGN KEY(GENERO_ID) REFERENCES GENEROS(ID))
+
+CREATE TABLE IF NOT EXISTS PRESTAMOS(
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+FECHA_PRESTAMO TIMESTAMP DEFAULT NOW() NOT NULL,
+FECHA_ESTIPULADA TIMESTAMP NOT NULL,
+FECHA_REAL TIMESTAMP,
+LIBRO_ID INT NOT NULL,
+USUARIO_ID INT NOT NULL,
+CONSTRAINT FK_PRESTAMOS_INVENTARIO FOREIGN KEY(LIBRO_ID) REFERENCES INVENTARIO(ID),
+CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID));
+"""
+    con(query)
+
+ 
+""" ancho_col=[0,0]
+ 
+for hola in res:
+    id=str(hola[0])
+    hi=hola[1]
+    if len(id) > ancho_col[0]:
+        ancho_col[0]=len(id)
+    if len(hi) > ancho_col[1]:  
+        ancho_col[1]=len(hi)
+ 
+# print("1"*8)
+#
+ 
+for i,r in enumerate(res):
+   
+    id =str(r[0])
+    hi=r[1]
+    diff_id= abs(len(id) - ancho_col[0])
+    diff_hi=abs(len(hi) - ancho_col[1])
+    if i == 0:
+        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+")
+        print(("| HOLA"+" "*diff_hi)+"| "+("ID"+" "*diff_id+"|"))
+        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+")
+ 
+    print("|"+(hi+(" "*diff_hi))+" | "+(id+(" "*diff_id)+"|"))
+   
+    if i == len(res)-1:
+        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+") """
 
 def clear():
     os.system('cls' if os.name== 'nt' else 'clear')
 
-def columnas_usuarios():
-    # Conectar a la base de datos
-    con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
-    cursor = con.cursor()
-
-    # Obtener los nombres de las columnas de la tabla
-    cursor.execute("SHOW COLUMNS FROM USUARIOS")
-    columns = cursor.fetchall()
-
-    for column in columns:
-        column_name = column[0]  # Nombre de la columna
-        
-        # Consultar la longitud máxima de la columna
-        cursor.execute(f"SELECT MAX(LENGTH({column_name})) FROM USUARIOS")
-        max_length = cursor.fetchone()[0]
-
-        if max_length:  # Verifica que max_length no sea None
-            
-            # Actualizar registros para igualar la longitud
-            update_query = f"""
-                UPDATE USUARIOS
-                SET {column_name} = CONCAT({column_name}, SPACE(%s - LENGTH({column_name})))
-                WHERE LENGTH({column_name}) < %s
-            """
-            cursor.execute(update_query, (max_length, max_length))
-
-            # Confirmar cambios
-            con.commit()
-
-    # Cerrar la conexión a la base de datos
-    cursor.close()
-    con.close()
-
-def columnas_inventario():
-    # Conectar a la base de datos
-    con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
-    cursor = con.cursor()
-
-    # Obtener los nombres de las columnas de la tabla
-    cursor.execute("SHOW COLUMNS FROM INVENTARIO")
-    columns = cursor.fetchall()
-
-    for column in columns:
-        column_name = column[0]  # Nombre de la columna
-        
-        # Consultar la longitud máxima de la columna
-        cursor.execute(f"SELECT MAX(LENGTH({column_name})) FROM INVENTARIO")
-        max_length = cursor.fetchone()[0]
-
-        if max_length:  # Verifica que max_length no sea None
-            
-            # Actualizar registros para igualar la longitud
-            update_query = f"""
-                UPDATE INVENTARIO
-                SET {column_name} = CONCAT({column_name}, SPACE(%s - LENGTH({column_name})))
-                WHERE LENGTH({column_name}) < %s
-            """
-            cursor.execute(update_query, (max_length, max_length))
-
-            # Confirmar cambios
-            con.commit()
-
-    # Cerrar la conexión a la base de datos
-    cursor.close()
-    con.close()
-
-def columnas_generos():
-    # Conectar a la base de datos
-    con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
-    cursor = con.cursor()
-
-    # Obtener los nombres de las columnas de la tabla
-    cursor.execute("SHOW COLUMNS FROM GENEROS")
-    columns = cursor.fetchall()
-
-    for column in columns:
-        column_name = column[0]  # Nombre de la columna
-        
-        # Consultar la longitud máxima de la columna
-        cursor.execute(f"SELECT MAX(LENGTH({column_name})) FROM GENEROS")
-        max_length = cursor.fetchone()[0]
-
-        if max_length:  # Verifica que max_length no sea None
-            
-            # Actualizar registros para igualar la longitud
-            update_query = f"""
-                UPDATE GENEROS
-                SET {column_name} = CONCAT({column_name}, SPACE(%s - LENGTH({column_name})))
-                WHERE LENGTH({column_name}) < %s
-            """
-            cursor.execute(update_query, (max_length, max_length))
-
-            # Confirmar cambios
-            con.commit()
-
-    # Cerrar la conexión a la base de datos
-    cursor.close()
-    con.close()
-
-def columnas_prestamos():
-    # Conectar a la base de datos
-    con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
-    cursor = con.cursor()
-
-    # Obtener los nombres de las columnas de la tabla
-    cursor.execute("SHOW COLUMNS FROM PRESTAMOS")
-    columns = cursor.fetchall()
-
-    for column in columns:
-        column_name = column[0]  # Nombre de la columna
-        
-        # Consultar la longitud máxima de la columna
-        cursor.execute(f"SELECT MAX(LENGTH({column_name})) FROM PRESTAMOS")
-        max_length = cursor.fetchone()[0]
-
-        if max_length:  # Verifica que max_length no sea None
-            
-            # Actualizar registros para igualar la longitud
-            update_query = f"""
-                UPDATE PRESTAMOS
-                SET {column_name} = CONCAT({column_name}, SPACE(%s - LENGTH({column_name})))
-                WHERE LENGTH({column_name}) < %s
-            """
-            cursor.execute(update_query, (max_length, max_length))
-
-            # Confirmar cambios
-            con.commit()
-
-    # Cerrar la conexión a la base de datos
-    cursor.close()
-    con.close()
-
 def genre():
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+    select='SELECT * FROM GENEROS'
 
-        if con.is_connected():
-            while True:
-                cur=con.cursor()
-                cur.execute("SELECT * FROM GENEROS")
-                row=cur.fetchall()
-                print("==========================")           
-                print("|| ID ||    GENERO      ||")
-                print("==========================")
-                for elemento in row:
-                    print(f"|| {elemento[0]}  || {elemento[1]}||")
-                    print("==========================")
+    res=con(select)
 
-                genero=input("Ingrese el id del genero: ")
-                if genero is "":
-                    input("Género inválido, por favor ingrese de nuevo.")
-                else:
-                    return genero
+    ancho_col=[0,0]
+ 
+    for hola in res:
+        id=str(hola[0])
+        hi=hola[1]
+        if len(id) > ancho_col[0]:
+            ancho_col[0]=len(id)
+        if len(hi) > ancho_col[1]:  
+            ancho_col[1]=len(hi)
+    
 
-    except Exception as e:
-        print(f"Error al insertar datos: {e}")
+    for i,r in enumerate(res):
+    
+        id =str(r[0])
+        hi=r[1]
+        diff_id= abs(len(id) - ancho_col[0])
+        diff_hi=abs(len(hi) - ancho_col[1])
+        if len(id)>1:
+            diff_encabezado_id=abs(len("ID") - ancho_col[0])
+        else:
+            diff_encabezado_id=0
+        diff_encabezado_genero=abs(len("GÉNEROS") - ancho_col[1])
+        if i == 0:
+            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+")
+            print(("|ID"+" "*diff_encabezado_id)+"| "+("GÉNEROS"+" "*diff_encabezado_genero+"|"))
+            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+")
+    
+        print("|"+(id+(" "*diff_id))+" | "+(hi+(" "*diff_hi)+"|"))
+    
+        if i == len(res)-1:
+            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+") 
 
-    finally:
-        if con.is_connected():
-            cur.close()
-            con.close()
+    genero=input("Ingrese el ID del genero: ")
+    if not genero.strip():
+        input("Género inválido, por favor ingrese de nuevo.")
+    else:
+        return genero
         
 def insert_user(nombre,apellido,dni,telefono,email):
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+        query="""INSERT INTO USUARIOS(nombre,apellido,dni,telefono,email) VALUES (%s,%s,%s,%s,%s)"""
+        values=[nombre,apellido,dni,telefono,email]
 
-        if con.is_connected():
-            cur=con.cursor()
-            query="""INSERT INTO USUARIOS(nombre,apellido,dni,telefono,email) VALUES (%s,%s,%s,%s,%s)"""
-            values=(nombre,apellido,dni,telefono,email)
-            cur.execute(query,values)
-            con.commit()
-            input("Datos cargados correctamente.")
+        con(query,values)
 
-    except Exception as e:
-        print(f"Error al insertar datos: {e}")
-
-    finally:
-        if con.is_connected():
-            cur.close()
-            con.close()
+        input("Datos cargados correctamente.")
 
 def insert_book(titulo,autor,genero,año_publicacion):
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+    query="""INSERT INTO INVENTARIO(titulo,autor,genero_id,año_publicacion) VALUES (%s,%s,%s,%s)"""
+    values=(titulo,autor,genero,año_publicacion)
 
-        if con.is_connected():
-            cur=con.cursor()
-            query="""INSERT INTO INVENTARIO(titulo,autor,genero_id,año_publicacion) VALUES (%s,%s,%s,%s)"""
-            values=(titulo,autor,genero,año_publicacion)
-            cur.execute(query,values)
-            con.commit()
-            print("Datos cargados correctamente.")
+    con(query,values)
 
-    except Exception as e:
-        print(f"Error al insertar datos: {e}")
-
-    finally:
-        if con.is_connected():
-            cur.close()
-            con.close()
+    print("Datos cargados correctamente.")
 
 def insert_genre(genero,descripcion):
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+    query="""INSERT INTO GENEROS(genero,descripcion) VALUES (%s,%s)"""
+    values=(genero,descripcion)
 
-        if con.is_connected():
-            cur=con.cursor()
-            query="""INSERT INTO GENEROS(genero,descripcion) VALUES (%s,%s)"""
-            values=(genero,descripcion)
-            cur.execute(query,values)
-            con.commit()
-            print("Datos cargados correctamente.")
-    except Exception as e:
-        print(f"Error al insertar datos: {e}")
+    con(query,values)
 
-    finally:
-        if con.is_connected():
-            cur.close()
-            con.close()
+    print("Datos cargados correctamente.")
 
-def traer_libros():
-    clear()
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+
+def traer_libros():  
+    select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID WHERE INVENTARIO.ESTADO=1"""
+
+    res=con(select)
+
+    while True:
+        clear()
+        print("                                 ====== LIBROS ======")
+        ids=[]
+
+        ancho_col=[0,0,0,0]
+ 
+        for hola in res:
+            id=str(hola[0])
+            hi=hola[1]
+            autor=hola[2]
+            genero=hola[3]
+            if len(id) > ancho_col[0]:
+                ancho_col[0]=len(id)
+            if len(hi) > ancho_col[1]:  
+                ancho_col[1]=len(hi)
+            if len(autor) > ancho_col[2]:
+                ancho_col[2]=len(autor)
+            if len(genero) > ancho_col[3]:
+                ancho_col[3]=len(genero)
+            ids.append(str(hola[0]).strip())
         
-        if con.is_connected():
-            cur=con.cursor()
-            query="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID; WHERE INVENTARIO.ESTADO=1"""
-            cur.execute(query)
-            
-            lista=cur.fetchall()
-            while True:
-                clear()
-                print("                                 ====== LIBROS ======")
-                ids=[]
-                for elemento in lista:
-                    print(elemento)
-                    ids.append(str(elemento[0]))
-                print("===============================")
-                id=input("Ingrese el ID del libro: ")
-                if not id in ids:
-                    clear()
-                    print("                                 ====== LIBROS ======")
-                    print(f"El libro {id} no se encuentra disponible")
-                    input("Presione ENTER para continuar...")
-                else:
-                    break
+        for i,r in enumerate(res):
+        
+            id =str(r[0])
+            hi=r[1]
+            autor=r[2]
+            genero=r[3]
+            diff_id= abs(len(id) - ancho_col[0])
+            diff_hi=abs(len(hi) - ancho_col[1])
+            diff_autor=abs(len(autor) - ancho_col[2])
+            diff_genero=abs(len(genero)- ancho_col[3])
+            if len(id)>1:
+                diff_encabezado_id=abs(len("ID") - ancho_col[0])
+            else:
+                diff_encabezado_id=0
+            diff_encabezado_titulo=abs(len("TÍTULO") - ancho_col[1])
+            diff_encabezado_autor=abs(len("AUTOR") - ancho_col[2])
+            diff_encabezado_genero=abs(len("GÉNERO") - ancho_col[3])
+            lineas=""""+"+("-"*ancho_col[0])+"-+-"+("-"*ancho_col[1])+'-+-'+('-'*ancho_col[2])'-+-'+('-'*ancho_col[3])+'+'"""
+            if i == 0:
+                print ("+",("-"*ancho_col[0]),"-+-",("-"*ancho_col[1]),"-+-",("-"*ancho_col[2])+"-+-",("-"*ancho_col[3]),"+")
+                print(("|ID"+" "*diff_encabezado_id)+"| "+("TÍTULO"+" "*diff_encabezado_titulo)+"| "+("AUTOR"+" "*diff_encabezado_autor)+"| "+("GÉNERO"+" "*diff_encabezado_genero+"|"))
+                print("+"+("-"*ancho_col[0])+"-+-"+("-"*ancho_col[1])+"-+-"+("-"*ancho_col[2])+"-+-"+("-"*ancho_col[3])+"+")
+        
+            print("|"+(id+(" "*diff_id))+" | "+(hi+(" "*diff_hi))+" | "+(autor+(" "*diff_autor))+" | "+(genero+(" "*diff_genero)+"|"))
+        
+            if i == len(res)-1:
+                print ("+",("-"*ancho_col[0]),"-+-",("-"*ancho_col[1]),"-+-",("-"*ancho_col[2])+"-+-",("-"*ancho_col[3]),"+")
 
+        print("===============================")
+        id=input("Ingrese el ID del libro: ")
+        if id.strip() in ids:
             return id
-        
-    except Exception as e:
-        print(f"Error en la conexión: {e}")
-
-    finally:
-        return None
+        else:
+            clear()
+            print("                                 ====== LIBROS ======")
+            input(f"El libro {id} no se encuentra disponible")
 
 def traer_usuarios():
     clear()
@@ -335,9 +274,6 @@ def traer_usuarios():
     except Exception as e:
         print(f"Error en la conexión: {e}")
 
-    finally:
-        return None  
-
 def insert_loan(libro,usuario):
     try:
         con=mysql.connect(
@@ -347,17 +283,19 @@ def insert_loan(libro,usuario):
         database="biblioteca")
 
         if con.is_connected():
-            fecha_estipulada=(datetime.now()+timedelta(days=7)).timestamp()
+            fecha_estipulada=(datetime.now()+timedelta(days=7))
+            print(type(fecha_estipulada))
             cur=con.cursor()
             query="""INSERT INTO PRESTAMOS(FECHA_ESTIPULADA,LIBRO_ID,USUARIO_ID) VALUES (%s,%s,%s)"""
             values=(fecha_estipulada,libro,usuario)
             cur.execute(query,values)
-            cur.execute("UPDATE INVENTARIO SET ESTADO=0 WHERE ID=LIBRO_ID")
             con.commit()
-            print("Préstamo realizado con éxito.")
+            cur.execute("UPDATE INVENTARIO SET ESTADO=0 WHERE ID=%s",[libro])
+            con.commit()
+            input("Préstamo realizado con éxito.")
 
     except Exception as e:
-        print(f"Error al insertar datos: {e}")
+        input(f"Error al insertar datos: {e}")
 
     finally:
         if con.is_connected():
@@ -441,6 +379,8 @@ def menu_agregar():
             while True:
                 print("             ====== AGREGAR PRÉSTAMO ======")
                 libro=traer_libros()
+                print(libro)
+                input("")
                 usuario=traer_usuarios()
                 insert_loan(libro,usuario)
                 break
@@ -462,10 +402,6 @@ def menu_actualizar():
 
 def main():
     while True:
-        columnas_usuarios()
-        columnas_inventario()
-        columnas_prestamos()
-        columnas_generos()
         main_menu()
         opcion = input("Seleccione una opción: ")
 
