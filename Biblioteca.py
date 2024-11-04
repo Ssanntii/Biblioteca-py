@@ -9,6 +9,7 @@ port=3306
 user='root'
 database='biblioteca'
 password=''
+#libro_id=None
 
 def con(query, values=[]):
     try:
@@ -36,12 +37,15 @@ def con(query, values=[]):
         con.close()
 
 def crear_tablas():
-    query="""
+    query1="""
 CREATE TABLE IF NOT EXISTS GENEROS(
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 GENERO VARCHAR(40) NOT NULL,
-DESCRIPCION TEXT)
-
+DESCRIPCION TEXT);
+"""
+    con(query1)
+    
+    query2="""
 CREATE TABLE IF NOT EXISTS USUARIOS(
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 NOMBRE VARCHAR(40) NOT NULL,
@@ -51,9 +55,11 @@ TELEFONO VARCHAR(20),
 EMAIL VARCHAR(100),
 CREADO_EL TIMESTAMP DEFAULT NOW(),
 ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
-ESTADO TINYINT DEFAULT 1)
-
-CREATE TABLE IF NOT EXISTS INVENTARIO(
+ESTADO TINYINT DEFAULT 1);
+"""
+    con(query2)
+    
+    query3=""" CREATE TABLE IF NOT EXISTS INVENTARIO(
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 TITULO VARCHAR(80) NOT NULL,
 AUTOR VARCHAR(80) NOT NULL,
@@ -62,9 +68,10 @@ AÑO_PUBLICACION VARCHAR(4),
 CREADO_EL TIMESTAMP DEFAULT NOW(),
 ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
 ESTADO TINYINT DEFAULT 1,
-CONSTRAINT FK_INVENTARIO_GENEROS FOREIGN KEY(GENERO_ID) REFERENCES GENEROS(ID))
-
-CREATE TABLE IF NOT EXISTS PRESTAMOS(
+CONSTRAINT FK_INVENTARIO_GENEROS FOREIGN KEY(GENERO_ID) REFERENCES GENEROS(ID)); """
+    con(query3)
+    
+    query4=""" CREATE TABLE IF NOT EXISTS PRESTAMOS(
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 FECHA_PRESTAMO TIMESTAMP DEFAULT NOW() NOT NULL,
 FECHA_ESTIPULADA TIMESTAMP NOT NULL,
@@ -72,10 +79,9 @@ FECHA_REAL TIMESTAMP,
 LIBRO_ID INT NOT NULL,
 USUARIO_ID INT NOT NULL,
 CONSTRAINT FK_PRESTAMOS_INVENTARIO FOREIGN KEY(LIBRO_ID) REFERENCES INVENTARIO(ID),
-CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID));
-"""
-    con(query)
-
+CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID)); """
+    con(query4)
+    
 def clear():
     os.system('cls' if os.name== 'nt' else 'clear')
 
@@ -100,6 +106,36 @@ def genre():
             else:
                 input(' ID no encontrado, por favor ingrese de nuevo.')
 
+def loan():
+    select='SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID'
+    res, columnas=con(select)
+
+    ids=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+        
+    while True:
+        clear()
+        if res:
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            prestamos=input(' Ingrese el ID del prestamo: ')
+            
+            if prestamos.strip() in ids:
+                libro_id=prestamos
+                return prestamos
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+    
+#def book_id():
+#    select='SELECT LIBRO_ID FROM PRESTAMOS WHERE ID=%s'
+#    values=[libro_id]
+#    res=con(select,values)
+    
+#    return res
+        
+    
 def bring_some_books():  
     select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID WHERE INVENTARIO.ESTADO=1"""
     res, columnas=con(select)
@@ -294,7 +330,6 @@ def insert_loan():
     while True:
         clear()
 
-
         libro=bring_some_books()
         usuario=bring_some_users()
 
@@ -306,7 +341,7 @@ def insert_loan():
         values=[datetime.now(),libro]
         con(update,values)
 
-        print("+-------------------------------------------+")
+        print("+------------------------------------------------------+")
         input(" Préstamo realizado con éxito.")
 
         clear()
@@ -367,11 +402,8 @@ def update_user():
 def update_book():
     while True:
         clear()
-
-        select="""
-        SELECT ID,NOMBRE,APELLIDO,DNI,TELEFONO,EMAIL
-        FROM USUARIOS WHERE ID=%s;"""
-        id=[bring_all_users()]
+        select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO,INVENTARIO.ESTADO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID WHERE INVENTARIO.ID=%s"""
+        id=[bring_all_books()]
         res, columnas=con(select,id)
 
         while True:
@@ -379,34 +411,113 @@ def update_book():
             if res:
                 print(tabulate(res, headers=columnas, tablefmt='grid'))
 
-            nombre=input(" Ingrese el nombre del usuario: ").capitalize()
-            apellido=input(" Ingrese el apellido del usuario: ").capitalize()
-            dni=input(" Ingrese el dni del usuario: ")
-            telefono=input(" Ingrese el teléfono del usuario: ")
-            email=input(" Ingrese el email del usuario: ").lower()
-                
-            if not nombre.strip() or not apellido.strip() or not dni.strip:
-                print("+-----------------------------------------------------+")
-                input("Datos inválidos, por favor ingrese de nuevo.")
+            titulo=input(" Ingrese el título del libro: ").capitalize()
+            autor=input(" Ingrese el autor del libro: ").capitalize()
+            genero=genre()
+            año_publicacion=input(" Ingrese el año de publicación: ")
+
+            if not titulo.strip() or not autor.strip() or not genero.strip():
+                print("+---------------------------------------------------+")
+                input(" Datos inválidos, por favor ingrese de nuevo.")
             else:
-                update="""
-                UPDATE USUARIOS SET NOMBRE=%s, APELLIDO=%s, DNI=%s, TELEFONO=%s, EMAIL=%s, ACTUALIZADO_EL=%s
-                WHERE ID=%s"""
-                values=[nombre,apellido,dni,telefono,email,datetime.now(),id[0]]
+                update="""UPDATE INVENTARIO SET titulo=%s ,autor=%s ,genero_id=%s,año_publicacion=%s, ACTUALIZADO_EL=%s WHERE ID=%s"""
+                values=[titulo,autor,genero,año_publicacion,datetime.now(),id[0]]
                 con(update,values)
-                print("+-----------------------------------------------------+")
-                input(" Usuario actualizado correctamente.")
+                print("+---------------------------------------------------+")
+                input(" Libro actualizado correctamente.")
+                
+                clear()
+                print('                   +------------------+                   ')
+                print("                   | ACTUALIZAR LIBRO |                   ")
+                print("+--------------------------------------------------------+")
+
+                eleccion=input(" Desea actualizar otro libro? (S/N): ").upper()
+                if eleccion=="S":
+                    continue
+                else:
+                    return
+
+def update_genre():
+    select="""SELECT * FROM GENEROS WHERE ID=%s"""
+    id=[genre()]
+    res,columnas=con(select,id)
+    
+    while True:
+        clear()
+        if res:
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+        
+        genero=input(" Ingrese el género: ").capitalize()
+        descripcion=input(" Ingrese una descripción: ").capitalize()
+
+        if not genero.strip():
+            print("+----------------------------------------------------+")
+            input(" Datos inválidos, por favor ingrese de nuevo")
+        else:
+            update="""UPDATE GENEROS SET genero=%s, descripcion=%s """
+            values=[genero,descripcion]
+            con(update,values)
+            print("+---------------------------------------------------------+")
+            input(" Género actualizado correctamente.")
 
             clear()
-            print('                   +--------------------+                   ')
-            print("                   | ACTUALIZAR USUARIO |                   ")
-            print("+----------------------------------------------------------+")
+            print('                   +-------------------+                   ')
+            print("                   | ACTUALIZAR GÉNERO |                   ")
+            print("+---------------------------------------------------------+")
 
-            eleccion=input(" Desea actualizar otro usuario? (S/N): ").upper()
+            eleccion=input(" Desea actualizar otro género? (S/N): ").upper()
             if eleccion=="S":
                 continue
             else:
                 return
+
+def update_loan():
+    select="""SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID WHERE P.ID=%s"""
+    id=[loan()]
+    
+    res,columnas=con(select,id)
+    
+    while True:
+        clear()
+           
+        if res:
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+        
+        while True:
+            clear()
+
+            libro=bring_some_books()
+            usuario=bring_some_users() 
+             
+            update1="""UPDATE PRESTAMOS SET LIBRO_ID=%s,USUARIO_ID=%s WHERE ID=%s """
+            values1=[libro,usuario,id[0]]
+            con(update1,values1)
+
+            update2="UPDATE INVENTARIO SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"
+            values2=[datetime.now(),libro,id[0]]
+            con(update2,values2)
+
+            print("+-------------------------------------------+")
+            input(" Préstamo actualizado con éxito.")
+
+            clear()
+            print('                   +----------------------+                   ')
+            print('                   | PRÉSTAMO ACTUALIZADO |                   ')
+            print("+------------------------------------------------------------+")
+
+            eleccion=input(" Desea actualizar otro préstamo? (S/N): ").upper()
+            if eleccion=="S":
+                continue
+            else:
+                return
+    
+# def update_libro_id():    
+# #book_id=libro_id 
+# update1="UPDATE INVENTARIO SET ESTADO=1, ACTUALIZADO_EL=%s WHERE ID=%s"
+# values=[datetime.now(),book_id]
+# con(update1,values)
+                
+    
 
 def main_menu():
     clear()
@@ -465,8 +576,13 @@ def menu_actualizar():
 
         if opcion == '1':
             update_user()
-        if opcion == '2':
+        elif opcion == '2':
             update_book()
+        elif opcion =='3':
+            update_genre()
+        elif opcion =='4':
+            update_loan()
+           # update_libro_id()
         elif opcion=='5':
             return
         else:
