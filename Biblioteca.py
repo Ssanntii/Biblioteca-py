@@ -2,6 +2,7 @@ import mysql.connector as mysql
 import os
 from datetime import datetime, timedelta
 from mysql.connector import Error
+from tabulate import tabulate
 
 host='localhost'
 port=3306
@@ -20,13 +21,16 @@ def con(query, values=[]):
         cur = con.cursor()
         cur.execute(query,values)
         res=cur.fetchall()
-       
         con.commit()
+
         if len(res)>0:
-            return res
+            columnas = [i[0] for i in cur.description] if cur.description else []
+            return res, columnas
         return None
+    
     except Error as e:
-        input(f"Error al insertar datos: {e}")
+        input(f"Error {e} encontrado.")
+
     finally:
         cur.close()
         con.close()
@@ -72,336 +76,405 @@ CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID)
 """
     con(query)
 
- 
-""" ancho_col=[0,0]
- 
-for hola in res:
-    id=str(hola[0])
-    hi=hola[1]
-    if len(id) > ancho_col[0]:
-        ancho_col[0]=len(id)
-    if len(hi) > ancho_col[1]:  
-        ancho_col[1]=len(hi)
- 
-# print("1"*8)
-#
- 
-for i,r in enumerate(res):
-   
-    id =str(r[0])
-    hi=r[1]
-    diff_id= abs(len(id) - ancho_col[0])
-    diff_hi=abs(len(hi) - ancho_col[1])
-    if i == 0:
-        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+")
-        print(("| HOLA"+" "*diff_hi)+"| "+("ID"+" "*diff_id+"|"))
-        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+")
- 
-    print("|"+(hi+(" "*diff_hi))+" | "+(id+(" "*diff_id)+"|"))
-   
-    if i == len(res)-1:
-        print("+"+("-"*ancho_col[1])+"-+-"+"-"*ancho_col[0]+"+") """
-
 def clear():
     os.system('cls' if os.name== 'nt' else 'clear')
 
 def genre():
     select='SELECT * FROM GENEROS'
+    res, columnas=con(select)
 
-    res=con(select)
+    ids=[]
 
-    ancho_col=[0,0]
- 
-    for hola in res:
-        id=str(hola[0])
-        hi=hola[1]
-        if len(id) > ancho_col[0]:
-            ancho_col[0]=len(id)
-        if len(hi) > ancho_col[1]:  
-            ancho_col[1]=len(hi)
-    
-
-    for i,r in enumerate(res):
-    
-        id =str(r[0])
-        hi=r[1]
-        diff_id= abs(len(id) - ancho_col[0])
-        diff_hi=abs(len(hi) - ancho_col[1])
-        if len(id)>1:
-            diff_encabezado_id=abs(len("ID") - ancho_col[0])
-        else:
-            diff_encabezado_id=0
-        diff_encabezado_genero=abs(len("GÉNEROS") - ancho_col[1])
-        if i == 0:
-            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+")
-            print(("|ID"+" "*diff_encabezado_id)+"| "+("GÉNEROS"+" "*diff_encabezado_genero+"|"))
-            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+")
-    
-        print("|"+(id+(" "*diff_id))+" | "+(hi+(" "*diff_hi)+"|"))
-    
-        if i == len(res)-1:
-            print("+"+("-"*ancho_col[0])+"-+-"+"-"*ancho_col[1]+"+") 
-
-    genero=input("Ingrese el ID del genero: ")
-    if not genero.strip():
-        input("Género inválido, por favor ingrese de nuevo.")
-    else:
-        return genero
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
         
-def insert_user(nombre,apellido,dni,telefono,email):
-        query="""INSERT INTO USUARIOS(nombre,apellido,dni,telefono,email) VALUES (%s,%s,%s,%s,%s)"""
-        values=[nombre,apellido,dni,telefono,email]
+    while True:
+        clear()
+        if res:
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
 
-        con(query,values)
+            genero=input(' Ingrese el ID del género: ')
 
-        input("Datos cargados correctamente.")
+            if genero.strip() in ids:
+                return genero
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
 
-def insert_book(titulo,autor,genero,año_publicacion):
-    query="""INSERT INTO INVENTARIO(titulo,autor,genero_id,año_publicacion) VALUES (%s,%s,%s,%s)"""
-    values=(titulo,autor,genero,año_publicacion)
-
-    con(query,values)
-
-    print("Datos cargados correctamente.")
-
-def insert_genre(genero,descripcion):
-    query="""INSERT INTO GENEROS(genero,descripcion) VALUES (%s,%s)"""
-    values=(genero,descripcion)
-
-    con(query,values)
-
-    print("Datos cargados correctamente.")
-
-
-def traer_libros():  
+def bring_some_books():  
     select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID WHERE INVENTARIO.ESTADO=1"""
+    res, columnas=con(select)
 
-    res=con(select)
+    ids=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
 
     while True:
         clear()
-        print("                                 ====== LIBROS ======")
-        ids=[]
+        if res:
+            print('                          +----------------+                          ')
+            print('                          | NUEVO PRÉSTAMO |                          ')
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
 
-        ancho_col=[0,0,0,0]
- 
-        for hola in res:
-            id=str(hola[0])
-            hi=hola[1]
-            autor=hola[2]
-            genero=hola[3]
-            if len(id) > ancho_col[0]:
-                ancho_col[0]=len(id)
-            if len(hi) > ancho_col[1]:  
-                ancho_col[1]=len(hi)
-            if len(autor) > ancho_col[2]:
-                ancho_col[2]=len(autor)
-            if len(genero) > ancho_col[3]:
-                ancho_col[3]=len(genero)
-            ids.append(str(hola[0]).strip())
-        
-        for i,r in enumerate(res):
-        
-            id =str(r[0])
-            hi=r[1]
-            autor=r[2]
-            genero=r[3]
-            diff_id= abs(len(id) - ancho_col[0])
-            diff_hi=abs(len(hi) - ancho_col[1])
-            diff_autor=abs(len(autor) - ancho_col[2])
-            diff_genero=abs(len(genero)- ancho_col[3])
-            if len(id)>1:
-                diff_encabezado_id=abs(len("ID") - ancho_col[0])
+            libro=input(' Ingrese el ID del libro: ')
+            if libro.strip() in ids:
+                return libro
             else:
-                diff_encabezado_id=0
-            diff_encabezado_titulo=abs(len("TÍTULO") - ancho_col[1])
-            diff_encabezado_autor=abs(len("AUTOR") - ancho_col[2])
-            diff_encabezado_genero=abs(len("GÉNERO") - ancho_col[3])
-            lineas=""""+"+("-"*ancho_col[0])+"-+-"+("-"*ancho_col[1])+'-+-'+('-'*ancho_col[2])'-+-'+('-'*ancho_col[3])+'+'"""
-            if i == 0:
-                print ("+",("-"*ancho_col[0]),"-+-",("-"*ancho_col[1]),"-+-",("-"*ancho_col[2])+"-+-",("-"*ancho_col[3]),"+")
-                print(("|ID"+" "*diff_encabezado_id)+"| "+("TÍTULO"+" "*diff_encabezado_titulo)+"| "+("AUTOR"+" "*diff_encabezado_autor)+"| "+("GÉNERO"+" "*diff_encabezado_genero+"|"))
-                print("+"+("-"*ancho_col[0])+"-+-"+("-"*ancho_col[1])+"-+-"+("-"*ancho_col[2])+"-+-"+("-"*ancho_col[3])+"+")
-        
-            print("|"+(id+(" "*diff_id))+" | "+(hi+(" "*diff_hi))+" | "+(autor+(" "*diff_autor))+" | "+(genero+(" "*diff_genero)+"|"))
-        
-            if i == len(res)-1:
-                print ("+",("-"*ancho_col[0]),"-+-",("-"*ancho_col[1]),"-+-",("-"*ancho_col[2])+"-+-",("-"*ancho_col[3]),"+")
+                input(' ID no encontrado, por favor ingrese de nuevo.')
 
-        print("===============================")
-        id=input("Ingrese el ID del libro: ")
-        if id.strip() in ids:
-            return id
-        else:
+def bring_some_users():
+    select="""SELECT ID,NOMBRE,APELLIDO,DNI FROM USUARIOS WHERE ESTADO=1"""
+    res, columnas=con(select)
+
+    ids=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+
+    while True:
+        clear()
+        if res:
+            print('            +----------------+               ')
+            print('            | NUEVO PRÉSTAMO |               ')
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            usuario=input(' Ingrese el ID del usuario: ')
+            if usuario.strip() in ids:
+                return usuario
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+
+def bring_all_books():
+    select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO,INVENTARIO.ESTADO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID"""
+    res, columnas=con(select)
+
+    ids=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+
+    while True:
+        clear()
+        if res:
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            libro=input(' Ingrese el ID del libro que desea actualizar: ')
+            if libro.strip() in ids:
+                return libro
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+
+def bring_all_users():
+    select="""
+            SELECT ID,NOMBRE,APELLIDO,DNI,
+                CASE 
+                    WHEN ESTADO = 1 THEN 'ACTIVO' 
+                    WHEN ESTADO = 0 THEN 'INACTIVO'  
+                END AS ESTADO
+            FROM USUARIOS;"""
+    res, columnas=con(select)
+
+    ids=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+
+    while True:
+        clear()
+        if res:
+            print('                 +--------------------+                 ')
+            print("                 | ACTUALIZAR USUARIO |                 ")
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            usuario=input(' Ingrese el ID del usuario que desea actualizar: ')
+            if usuario.strip() in ids:
+                return usuario
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+
+def insert_user():
+    while True:
             clear()
-            print("                                 ====== LIBROS ======")
-            input(f"El libro {id} no se encuentra disponible")
+            print('                   +---------------+                   ')
+            print("                   | NUEVO USUARIO |                   ")
+            print("+-----------------------------------------------------+")
 
-def traer_usuarios():
-    clear()
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
-        
-        if con.is_connected():
-            cur=con.cursor()
-            query="""SELECT ID,NOMBRE,APELLIDO FROM USUARIOS WHERE ESTADO=1"""
-            cur.execute(query)
+            nombre=input(" Ingrese el nombre del usuario: ").capitalize()
+            apellido=input(" Ingrese el apellido del usuario: ").capitalize()
+            dni=input(" Ingrese el DNI del usuario: ")
+            telefono=input(" Ingrese el teléfono del usuario: ")
+            email=input(" Ingrese el email del usuario: ").lower()
             
-            lista=cur.fetchall()
-            while True:
+            if not nombre.strip() or not apellido.strip() or not dni.strip:
+                print("+-----------------------------------------------------+")
+                input("Datos inválidos, por favor ingrese de nuevo.")
+            else:
+                query="""INSERT INTO USUARIOS(nombre,apellido,dni,telefono,email) VALUES (%s,%s,%s,%s,%s)"""
+                values=[nombre,apellido,dni,telefono,email]
+                con(query,values)
+                print("+-----------------------------------------------------+")
+                input(" Usuario cargado correctamente.")
+
                 clear()
-                print("                                 ====== USUARIOS ======")
-                ids=[]
-                for elemento in lista:
-                    print(elemento)
-                    ids.append(str(elemento[0]))
-                print("===============================")
-                id=input("Ingrese el ID del usuario: ")
-                if not id in ids:
-                    clear()
-                    print("                                 ====== USUARIOS ======")
-                    print(f"El usuario {id} no se encuentra disponible")
-                    input("Presione ENTER para continuar...")
+                print('                   +---------------+                   ')
+                print("                   | NUEVO USUARIO |                   ")
+                print("+-----------------------------------------------------+")
+
+                eleccion=input(" Desea agregar otro usuario? (S/N): ").upper()
+                if eleccion=="S":
+                    continue
                 else:
                     break
 
-        return id
-                
-    except Exception as e:
-        print(f"Error en la conexión: {e}")
+def insert_book():
+    while True:
+        clear()
+        print('                   +-------------+                   ')
+        print("                   | NUEVO LIBRO |                   ")
+        print("+---------------------------------------------------+")
 
-def insert_loan(libro,usuario):
-    try:
-        con=mysql.connect(
-        host="localhost",
-        port=3306,
-        user="root",
-        database="biblioteca")
+        titulo=input(" Ingrese el título del libro: ").capitalize()
+        autor=input(" Ingrese el autor del libro: ").capitalize()
+        genero=genre()
+        año_publicacion=input(" Ingrese el año de publicación: ")
 
-        if con.is_connected():
-            fecha_estipulada=(datetime.now()+timedelta(days=7))
-            print(type(fecha_estipulada))
-            cur=con.cursor()
-            query="""INSERT INTO PRESTAMOS(FECHA_ESTIPULADA,LIBRO_ID,USUARIO_ID) VALUES (%s,%s,%s)"""
-            values=(fecha_estipulada,libro,usuario)
-            cur.execute(query,values)
-            con.commit()
-            cur.execute("UPDATE INVENTARIO SET ESTADO=0 WHERE ID=%s",[libro])
-            con.commit()
-            input("Préstamo realizado con éxito.")
-
-    except Exception as e:
-        input(f"Error al insertar datos: {e}")
-
-    finally:
-        if con.is_connected():
-            cur.close()
-            con.close()
+        if not titulo.strip() or not autor.strip() or not genero.strip():
+            print("+---------------------------------------------------+")
+            input(" Datos inválidos, por favor ingrese de nuevo.")
+        else:
+            query="""INSERT INTO INVENTARIO(titulo,autor,genero_id,año_publicacion) VALUES (%s,%s,%s,%s)"""
+            values=[titulo,autor,genero,año_publicacion]
+            con(query,values)
+            print("+---------------------------------------------------+")
+            input(" Libro cargado correctamente.")
             
+            clear()
+            print('                   +-------------+                   ')
+            print("                   | NUEVO LIBRO |                   ")
+            print("+---------------------------------------------------+")
+
+            eleccion=input(" Desea agregar otro libro? (S/N): ").upper()
+            if eleccion=="S":
+                continue
+            else:
+                break
+
+def insert_genre():
+    while True:
+        clear()
+        print('                   +--------------+                   ')
+        print("                   | NUEVO GÉNERO |                   ")
+        print("+----------------------------------------------------+")
+
+        genero=input(" Ingrese el género: ").capitalize()
+        descripcion=input(" Ingrese una descripción: ").capitalize()
+
+        if not genero.strip():
+            print("+----------------------------------------------------+")
+            input(" Datos inválidos, por favor ingrese de nuevo")
+        else:
+            query="""INSERT INTO GENEROS(genero,descripcion) VALUES (%s,%s)"""
+            values=[genero,descripcion]
+            con(query,values)
+            print("+----------------------------------------------------+")
+            input(" Género cargado correctamente.")
+
+            clear()
+            print('                   +--------------+                   ')
+            print("                   | NUEVO GÉNERO |                   ")
+            print("+----------------------------------------------------+")
+
+            eleccion=input(" Desea agregar otro género? (S/N): ").upper()
+            if eleccion=="S":
+                continue
+            else:
+                break
+
+def insert_loan():
+    while True:
+        clear()
+
+
+        libro=bring_some_books()
+        usuario=bring_some_users()
+
+        query="""INSERT INTO PRESTAMOS(FECHA_ESTIPULADA,LIBRO_ID,USUARIO_ID) VALUES (%s,%s,%s)"""
+        values=[(datetime.now()+timedelta(days=7)),libro,usuario]
+        con(query,values)
+
+        update="UPDATE INVENTARIO SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"
+        values=[datetime.now(),libro]
+        con(update,values)
+
+        print("+-------------------------------------------+")
+        input(" Préstamo realizado con éxito.")
+
+        clear()
+        print('                   +----------------+                   ')
+        print('                   | NUEVO PRÉSTAMO |                   ')
+        print("+------------------------------------------------------+")
+
+        eleccion=input(" Desea agregar otro préstamo? (S/N): ").upper()
+        if eleccion=="S":
+            continue
+        else:
+            break
+
+def update_user():
+    while True:
+        clear()
+
+        select="""
+        SELECT ID,NOMBRE,APELLIDO,DNI,TELEFONO,EMAIL
+        FROM USUARIOS WHERE ID=%s;"""
+        id=[bring_all_users()]
+        res, columnas=con(select,id)
+
+        while True:
+            clear()
+            if res:
+                print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            nombre=input(" Ingrese el nombre del usuario: ").capitalize()
+            apellido=input(" Ingrese el apellido del usuario: ").capitalize()
+            dni=input(" Ingrese el dni del usuario: ")
+            telefono=input(" Ingrese el teléfono del usuario: ")
+            email=input(" Ingrese el email del usuario: ").lower()
+                
+            if not nombre.strip() or not apellido.strip() or not dni.strip:
+                print("+-----------------------------------------------------+")
+                input("Datos inválidos, por favor ingrese de nuevo.")
+            else:
+                update="""
+                UPDATE USUARIOS SET NOMBRE=%s, APELLIDO=%s, DNI=%s, TELEFONO=%s, EMAIL=%s, ACTUALIZADO_EL=%s
+                WHERE ID=%s"""
+                values=[nombre,apellido,dni,telefono,email,datetime.now(),id[0]]
+                con(update,values)
+                print("+-----------------------------------------------------+")
+                input(" Usuario actualizado correctamente.")
+
+            clear()
+            print('                   +--------------------+                   ')
+            print("                   | ACTUALIZAR USUARIO |                   ")
+            print("+----------------------------------------------------------+")
+
+            eleccion=input(" Desea actualizar otro usuario? (S/N): ").upper()
+            if eleccion=="S":
+                continue
+            else:
+                return
+
+def update_book():
+    while True:
+        clear()
+
+        select="""
+        SELECT ID,NOMBRE,APELLIDO,DNI,TELEFONO,EMAIL
+        FROM USUARIOS WHERE ID=%s;"""
+        id=[bring_all_users()]
+        res, columnas=con(select,id)
+
+        while True:
+            clear()
+            if res:
+                print(tabulate(res, headers=columnas, tablefmt='grid'))
+
+            nombre=input(" Ingrese el nombre del usuario: ").capitalize()
+            apellido=input(" Ingrese el apellido del usuario: ").capitalize()
+            dni=input(" Ingrese el dni del usuario: ")
+            telefono=input(" Ingrese el teléfono del usuario: ")
+            email=input(" Ingrese el email del usuario: ").lower()
+                
+            if not nombre.strip() or not apellido.strip() or not dni.strip:
+                print("+-----------------------------------------------------+")
+                input("Datos inválidos, por favor ingrese de nuevo.")
+            else:
+                update="""
+                UPDATE USUARIOS SET NOMBRE=%s, APELLIDO=%s, DNI=%s, TELEFONO=%s, EMAIL=%s, ACTUALIZADO_EL=%s
+                WHERE ID=%s"""
+                values=[nombre,apellido,dni,telefono,email,datetime.now(),id[0]]
+                con(update,values)
+                print("+-----------------------------------------------------+")
+                input(" Usuario actualizado correctamente.")
+
+            clear()
+            print('                   +--------------------+                   ')
+            print("                   | ACTUALIZAR USUARIO |                   ")
+            print("+----------------------------------------------------------+")
+
+            eleccion=input(" Desea actualizar otro usuario? (S/N): ").upper()
+            if eleccion=="S":
+                continue
+            else:
+                return
+
 def main_menu():
     clear()
-    print("             ====== MENÚ ======")
-    print("1. Agregar")
-    print("2. Actualizar")
-    print("3. Estado")
-    print("4. Salir")
-    print("===========================================")
+    print('                   +----------------+                   ')
+    print("                   | MENÚ PRINCIPAL |                   ")
+    print("+------------------------------------------------------+")
+    print("|1. Agregar                                            |")
+    print("|2. Actualizar                                         |")
+    print("|3. Devoluciones                                       |")
+    print("|4. Estado                                             |")
+    print("|5. Salir                                              |")
+    print("+------------------------------------------------------+")
 
 def menu_agregar():
     while True:
         clear()
-        print("             ====== AGREGAR ======")
-        print("1. Agregar Usuario")
-        print("2. Agregar Libro")
-        print("3. Agregar Género")
-        print("4. Agregar Préstamo")
-        print("5. Volver")
-        print("===========================================")
-        opcion = input("Seleccione una opción: ")
+        print('                   +---------+                   ')
+        print("                   | AGREGAR |                   ")
+        print("+-----------------------------------------------+")
+        print("|1. Nuevo Usuario                               |")
+        print("|2. Nuevo Libro                                 |")
+        print("|3. Nuevo Género                                |")
+        print("|4. Nuevo Préstamo                              |")
+        print("|5. Volver                                      |")
+        print("+-----------------------------------------------+")
+
+        opcion = input(" Seleccione una opción: ")
 
         if opcion=='1':
-            while True:
-                clear()
-                print("             ====== AGREGAR USUARIO ======")
-                nombre=input("Ingrese el nombre del usuario: ")
-                nombre=nombre.capitalize()
-                apellido=input("Ingrese el apellido del usuario: ")
-                apellido=apellido.capitalize()
-                dni=input("Ingrese el dni del usuario: ")
-                telefono=input("Ingrese el telefono del usuario: ")
-                email=input("Ingrese el email del usuario: ")
-                if dni is "" or apellido is "" or  nombre is "":
-                    input("Datos inválidos, por favor ingrese de nuevo.")
-                else:
-                    insert_user(nombre,apellido,dni,telefono,email)
-                    eleccion=input("Desea cargar otro usuario? (S/N): ")
-                    eleccion=eleccion.upper()
-                    if eleccion=="S":
-                        continue
-                    else:
-                        break
+            insert_user()
         elif opcion == '2':
-            while True:
-                clear()
-                print("             ====== AGREGAR LIBRO ======")
-                titulo=input("Ingrese el titulo del libro: ")
-                titulo=titulo.capitalize()
-                autor=input("Ingrese el autor del libro: ")
-                autor=autor.capitalize()
-                genero=genre()
-                año_publicacion=input("Ingrese el año de publicacion: ")
-                if titulo is "" or autor is "" or genero is "":
-                    input("Datos invalidos, por favor ingrese de nuevo.")
-                else:
-                    insert_book(titulo,autor,genero,año_publicacion)
-                    eleccion=input("Desea cargar otro libro? (S/N): ")
-                    eleccion=eleccion.upper()
-                    if eleccion=="S":
-                        continue
-                    else:
-                        break
+            insert_book()
         elif opcion == '3':
-            print("             ====== AGREGAR GÉNERO ======")
-            genero=input("Ingrese el genero: ")
-            genero=genero.capitalize()
-            descripcion=input("Ingrese una descripcion: ")
-            descripcion=descripcion.capitalize()
-            if genero is "" :
-                input("Datos invalidos, por favor ingrese de nuevo")
-            else:
-                insert_genre(genero, descripcion)
-                break
+            insert_genre()
         elif opcion == '4':
-            while True:
-                print("             ====== AGREGAR PRÉSTAMO ======")
-                libro=traer_libros()
-                print(libro)
-                input("")
-                usuario=traer_usuarios()
-                insert_loan(libro,usuario)
-                break
+            insert_loan()
         elif opcion == '5':
             return
         else:
             input(f"Opcion {opcion} invalida, por favor ingrese de nuevo. ")
 
 def menu_actualizar():
-    clear()
-    print("             ====== ACTUALIZAR ======")
-    print("1. Actualizar Usuario")
-    print("2. Actualizar Libro")
-    print("3. Actualizar Género")
-    print("4. Actualizar Préstamo")
-    print("5. Volver")
-    print("===========================================")
-    opcion = input("Seleccione una opción: ")
+    while True:
+        clear()
+        print('                    +------------+                   ')
+        print("                    | ACTUALIZAR |                   ")
+        print("+---------------------------------------------------+")
+        print("|1. Actualizar Usuario                              |")
+        print("|2. Actualizar Libro                                |")
+        print("|3. Actualizar Género                               |")
+        print("|4. Actualizar Préstamo                             |")
+        print("|5. Volver                                          |")
+        print("+---------------------------------------------------+")
+
+        opcion = input(" Seleccione una opción: ")
+
+        if opcion == '1':
+            update_user()
+        if opcion == '2':
+            update_book()
+        elif opcion=='5':
+            return
+        else:
+            input(f"Opcion {opcion} invalida, por favor ingrese de nuevo. ")
 
 def main():
     while True:
+        crear_tablas()
         main_menu()
         opcion = input("Seleccione una opción: ")
 
@@ -411,16 +484,22 @@ def main():
             menu_actualizar()    
         elif opcion == '3':
             clear()
+            print("====== DEVOLUCIONES ======")
+            print("1. Devolver libro")
+            print("2. Volver")
+            print("===============================")
+        elif opcion == '4':
+            clear()
             print("====== ESTADO ======")
             print("1. Estado Usuario")
             print("2. Estado Libro")
             print("3. Volver")
             print("===============================")
-        elif opcion == '4':
+        elif opcion=='5':
             clear()
             input("Saliendo del programa...")
-            break
+            break 
         else:
-            print("Opción inválida. Por favor, intenta de nuevo.")
+            input("Opción inválida. Por favor, intenta de nuevo.")
 
 main()
