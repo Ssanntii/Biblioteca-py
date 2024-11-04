@@ -9,7 +9,6 @@ port=3306
 user='root'
 database='biblioteca'
 password=''
-#libro_id=None
 
 def con(query, values=[]):
     try:
@@ -41,7 +40,7 @@ def crear_tablas():
 CREATE TABLE IF NOT EXISTS GENEROS(
 ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 GENERO VARCHAR(40) NOT NULL,
-DESCRIPCION TEXT);
+DESCRIPCION TEXT)
 """
     con(query1)
     
@@ -55,7 +54,7 @@ TELEFONO VARCHAR(20),
 EMAIL VARCHAR(100),
 CREADO_EL TIMESTAMP DEFAULT NOW(),
 ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
-ESTADO TINYINT DEFAULT 1);
+ESTADO TINYINT DEFAULT 1)
 """
     con(query2)
     
@@ -68,7 +67,7 @@ AÑO_PUBLICACION VARCHAR(4),
 CREADO_EL TIMESTAMP DEFAULT NOW(),
 ACTUALIZADO_EL TIMESTAMP DEFAULT NOW(),
 ESTADO TINYINT DEFAULT 1,
-CONSTRAINT FK_INVENTARIO_GENEROS FOREIGN KEY(GENERO_ID) REFERENCES GENEROS(ID)); """
+CONSTRAINT FK_INVENTARIO_GENEROS FOREIGN KEY(GENERO_ID) REFERENCES GENEROS(ID)) """
     con(query3)
     
     query4=""" CREATE TABLE IF NOT EXISTS PRESTAMOS(
@@ -79,7 +78,7 @@ FECHA_REAL TIMESTAMP,
 LIBRO_ID INT NOT NULL,
 USUARIO_ID INT NOT NULL,
 CONSTRAINT FK_PRESTAMOS_INVENTARIO FOREIGN KEY(LIBRO_ID) REFERENCES INVENTARIO(ID),
-CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID)); """
+CONSTRAINT FK_PRESTAMOS_USUARIOS FOREIGN KEY(USUARIO_ID) REFERENCES USUARIOS(ID)) """
     con(query4)
     
 def clear():
@@ -107,7 +106,7 @@ def genre():
                 input(' ID no encontrado, por favor ingrese de nuevo.')
 
 def loan():
-    select='SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID'
+    select="""SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID WHERE FECHA_REAL IS NULL"""
     res, columnas=con(select)
 
     ids=[]
@@ -120,22 +119,15 @@ def loan():
         if res:
             print(tabulate(res, headers=columnas, tablefmt='grid'))
 
-            prestamos=input(' Ingrese el ID del prestamo: ')
+            prestamos=input(' Ingrese el ID del préstamo: ')
             
             if prestamos.strip() in ids:
-                libro_id=prestamos
+                print(prestamos)
+                input('')
                 return prestamos
             else:
                 input(' ID no encontrado, por favor ingrese de nuevo.')
-    
-#def book_id():
-#    select='SELECT LIBRO_ID FROM PRESTAMOS WHERE ID=%s'
-#    values=[libro_id]
-#    res=con(select,values)
-    
-#    return res
-        
-    
+       
 def bring_some_books():  
     select="""SELECT INVENTARIO.ID,INVENTARIO.TITULO,INVENTARIO.AUTOR,GENEROS.GENERO FROM INVENTARIO JOIN GENEROS ON GENEROS.ID=INVENTARIO.GENERO_ID WHERE INVENTARIO.ESTADO=1"""
     res, columnas=con(select)
@@ -207,7 +199,7 @@ def bring_all_users():
                     WHEN ESTADO = 1 THEN 'ACTIVO' 
                     WHEN ESTADO = 0 THEN 'INACTIVO'  
                 END AS ESTADO
-            FROM USUARIOS;"""
+            FROM USUARIOS"""
     res, columnas=con(select)
 
     ids=[]
@@ -341,7 +333,7 @@ def insert_loan():
         values=[datetime.now(),libro]
         con(update,values)
 
-        print("+------------------------------------------------------+")
+        print('+-------------------------------------------+')
         input(" Préstamo realizado con éxito.")
 
         clear()
@@ -361,7 +353,7 @@ def update_user():
 
         select="""
         SELECT ID,NOMBRE,APELLIDO,DNI,TELEFONO,EMAIL
-        FROM USUARIOS WHERE ID=%s;"""
+        FROM USUARIOS WHERE ID=%s"""
         id=[bring_all_users()]
         res, columnas=con(select,id)
 
@@ -472,53 +464,216 @@ def update_genre():
                 return
 
 def update_loan():
-    select="""SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID WHERE P.ID=%s"""
-    id=[loan()]
-    
-    res,columnas=con(select,id)
-    
-    while True:
-        clear()
-           
-        if res:
-            print(tabulate(res, headers=columnas, tablefmt='grid'))
+    try:
+        select="""SELECT P.ID, P.FECHA_PRESTAMO, P.FECHA_ESTIPULADA, I.TITULO, U.NOMBRE,U.APELLIDO,U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID WHERE P.ID=%s"""
+        id=[loan()]
+        res,columnas=con(select,id)
         
         while True:
             clear()
+            
+            if res:
+                print(tabulate(res, headers=columnas, tablefmt='grid'))
+            
+            while True:
+                clear()
 
-            libro=bring_some_books()
-            usuario=bring_some_users() 
-             
-            update1="""UPDATE PRESTAMOS SET LIBRO_ID=%s,USUARIO_ID=%s WHERE ID=%s """
-            values1=[libro,usuario,id[0]]
-            con(update1,values1)
+                libro=bring_some_books()
+                usuario=bring_some_users()
+                
+                update="""UPDATE PRESTAMOS SET LIBRO_ID=%s,USUARIO_ID=%s WHERE ID=%s """
+                values=[libro,usuario,id[0]]
+                con(update,values)
 
-            update2="UPDATE INVENTARIO SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"
-            values2=[datetime.now(),libro,id[0]]
-            con(update2,values2)
+                update="UPDATE INVENTARIO SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"
+                values=[datetime.now(),libro]
+                con(update,values)
 
-            print("+-------------------------------------------+")
-            input(" Préstamo actualizado con éxito.")
+                print("+-------------------------------------------+")
+                print(" Préstamo actualizado con éxito.")
+                input(" Recuerde actualizar el estado del libro prestado erróneamente.")
 
+                clear()
+                print('                   +---------------------+                   ')
+                print('                   | ACTUALIZAR PRÉSTAMO |                   ')
+                print("+-----------------------------------------------------------+")
+
+                eleccion=input(" Desea actualizar otro préstamo? (S/N): ").upper()
+                if eleccion=="S":
+                    continue
+                else:
+                    return  
+    except:
+        input('No existen préstamos disponibles para actualizar.')                 
+
+def devolver_libro():
+    try:
+        select="""SELECT P.ID,P.FECHA_PRESTAMO,P.FECHA_ESTIPULADA,P.LIBRO_ID,I.TITULO,P.USUARIO_ID,U.NOMBRE,U.APELLIDO,U.DNI FROM PRESTAMOS P JOIN INVENTARIO I ON P.LIBRO_ID=I.ID JOIN USUARIOS U ON P.USUARIO_ID=U.ID WHERE P.ID=%s"""
+        id=[loan()]
+        res, columnas=con(select,id)
+
+        libro_id=[]
+        usuario_id=[]
+        fecha_estipulada=[]
+        fecha_real=[]
+        fecha_real.append(datetime.now())
+    
+        for i,e in enumerate(res):
+            libro_id.append(e[3])
+            usuario_id.append(e[5])
+            fecha_estipulada.append(e[2])
+        
+        print(libro_id[0])
+        print(usuario_id[0])
+        input('')
+
+        while True:
             clear()
-            print('                   +----------------------+                   ')
-            print('                   | PRÉSTAMO ACTUALIZADO |                   ')
-            print("+------------------------------------------------------------+")
 
-            eleccion=input(" Desea actualizar otro préstamo? (S/N): ").upper()
-            if eleccion=="S":
-                continue
+            if res:
+                print('                   +--------------+                   ')
+                print('                   | DEVOLUCIONES |                   ')
+                print("+----------------------------------------------------+")
+                print(tabulate(res, headers=columnas, tablefmt='grid'))
+            eleccion=input('Desea finalizar este préstamo? (S/N): ').upper()
+            if eleccion == 'S':
+                    
+                    update="""UPDATE PRESTAMOS SET FECHA_REAL=%s WHERE ID=%s """
+                    values=[fecha_real[0],id[0]]
+                    con(update,values)
+
+                    update="UPDATE INVENTARIO SET ESTADO=1, ACTUALIZADO_EL=%s WHERE ID=%s"
+                    values=[fecha_real[0],libro_id[0]]
+                    con(update,values)
+
+                    if fecha_real>fecha_estipulada:
+                        update="UPDATE USUARIOS SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"
+                        values=[fecha_real[0],usuario_id[0]]
+                        con(update,values) 
+
+                    print("+----------------------------------------------------+")
+                    input(" Devolución realizada con éxito.")
+
+                    clear()
+                    print('                   +--------------+                   ')
+                    print('                   | DEVOLUCIONES |                   ')
+                    print("+----------------------------------------------------+")
+
+                    eleccion=input(" Desea realizar otra devolución? (S/N): ").upper()
+                    if eleccion=="S":
+                        continue
+                    else:
+                        return
             else:
                 return
-    
-# def update_libro_id():    
-# #book_id=libro_id 
-# update1="UPDATE INVENTARIO SET ESTADO=1, ACTUALIZADO_EL=%s WHERE ID=%s"
-# values=[datetime.now(),book_id]
-# con(update1,values)
-                
-    
+    except:
+        input('No existen préstamos disponibles para devolver.')    
+            
+def status_books():
+    select="""SELECT I.ID,I.TITULO,I.AUTOR,G.GENERO,
+                CASE 
+                    WHEN I.ESTADO = 1 THEN 'EN STOCK' 
+                    WHEN I.ESTADO = 0 THEN 'FUERA DE STOCK'  
+                END AS ESTADO FROM INVENTARIO I JOIN GENEROS G ON G.ID=I.GENERO_ID"""
+    res, columnas=con(select)
 
+    ids=[]
+    status=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+        status.append(str(elemento[4]).strip())
+    while True:
+        clear()
+        if res:
+            print('                   +----------------------+                   ')
+            print("                   | ESTADO DE LOS LIBROS |                   ")
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+                    
+        eleccion=input(" Desea actualizar el estado de un libro? (S/N): ").upper()
+        if eleccion=="S":
+            libro=input(' Ingrese el ID del libro que desea actualizar: ')
+            libro_id=int(libro)
+            if libro.strip() in ids:
+                if status[libro_id-1]== 'FUERA DE STOCK':
+                    update="""UPDATE INVENTARIO SET ESTADO=1, ACTUALIZADO_EL=%s WHERE ID=%s"""
+                    values=[datetime.now(),libro]
+                    con(update,values)
+                else:
+                    update="""UPDATE INVENTARIO SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"""
+                    values=[datetime.now(),libro]
+                    con(update,values)
+                input(" Actualización realizada con éxito.")
+
+                clear()
+                print('                   +----------------------+                   ')
+                print("                   | ESTADO DE LOS LIBROS |                   ")
+                print("+------------------------------------------------------------+")
+
+                eleccion=input(" Desea actualizar otro libro? (S/N): ").upper()
+                if eleccion=="S":
+                    continue
+                else:
+                    return
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+        else:
+            return
+        
+def status_users():
+    select="""
+            SELECT ID,NOMBRE,APELLIDO,DNI,
+                CASE 
+                    WHEN ESTADO = 1 THEN 'ACTIVO' 
+                    WHEN ESTADO = 0 THEN 'INACTIVO'  
+                END AS ESTADO
+            FROM USUARIOS"""
+    res, columnas=con(select)
+
+    ids=[]
+    status=[]
+
+    for elemento in res:
+        ids.append(str(elemento[0]).strip())
+        status.append(str(elemento[4]).strip())
+
+    while True:
+        clear()
+        if res:
+            print('                   +------------------------+                   ')
+            print("                   | ESTADO DE LOS USUARIOS |                   ")
+            print(tabulate(res, headers=columnas, tablefmt='grid'))
+            
+        eleccion=input(" Desea actualizar el estado de un usuario? (S/N): ").upper()
+        if eleccion=="S":
+            usuario=input(' Ingrese el ID del usuario que desea actualizar: ')
+            usuario_id=int(usuario)
+            if usuario.strip() in ids:
+                if status[usuario_id-1]== 'INACTIVO':
+                    update="""UPDATE USUARIOS SET ESTADO=1, ACTUALIZADO_EL=%s WHERE ID=%s"""
+                    values=[datetime.now(),usuario]
+                    con(update,values)
+                else:
+                    update="""UPDATE USUARIOS SET ESTADO=0, ACTUALIZADO_EL=%s WHERE ID=%s"""
+                    values=[datetime.now(),usuario]
+                    con(update,values)
+                input(" Actualización realizada con éxito.")
+
+                clear()
+                print('                   +------------------------+                   ')
+                print("                   | ESTADO DE LOS USUARIOS |                   ")
+                print("+--------------------------------------------------------------+")
+
+                eleccion=input(" Desea actualizar otro libro? (S/N): ").upper()
+                if eleccion=="S":
+                    continue
+                else:
+                    return
+            else:
+                input(' ID no encontrado, por favor ingrese de nuevo.')
+        else:
+            return
+        
 def main_menu():
     clear()
     print('                   +----------------+                   ')
@@ -562,15 +717,15 @@ def menu_agregar():
 def menu_actualizar():
     while True:
         clear()
-        print('                    +------------+                   ')
-        print("                    | ACTUALIZAR |                   ")
-        print("+---------------------------------------------------+")
-        print("|1. Actualizar Usuario                              |")
-        print("|2. Actualizar Libro                                |")
-        print("|3. Actualizar Género                               |")
-        print("|4. Actualizar Préstamo                             |")
-        print("|5. Volver                                          |")
-        print("+---------------------------------------------------+")
+        print('                    +------------+                    ')
+        print("                    | ACTUALIZAR |                    ")
+        print("+----------------------------------------------------+")
+        print("|1. Actualizar Usuario                               |")
+        print("|2. Actualizar Libro                                 |")
+        print("|3. Actualizar Género                                |")
+        print("|4. Actualizar Préstamo                              |")
+        print("|5. Volver                                           |")
+        print("+----------------------------------------------------+")
 
         opcion = input(" Seleccione una opción: ")
 
@@ -582,12 +737,52 @@ def menu_actualizar():
             update_genre()
         elif opcion =='4':
             update_loan()
-           # update_libro_id()
         elif opcion=='5':
             return
         else:
             input(f"Opcion {opcion} invalida, por favor ingrese de nuevo. ")
 
+def menu_devoluciones():
+    while True:
+        clear()
+        print('                    +--------------+                    ')
+        print("                    | DEVOLUCIONES |                    ")
+        print("+------------------------------------------------------+")
+        print("|1. Devolver libro                                     |")
+        print("|2. Volver                                             |")
+        print("+------------------------------------------------------+")
+
+        opcion = input(" Seleccione una opción: ")
+
+        if opcion == '1':
+            devolver_libro()
+        elif opcion == '2':
+            return
+        else:
+            input(f"Opcion {opcion} invalida, por favor ingrese de nuevo. ")
+
+def menu_estado():
+    while True:
+        clear()
+        print('                    +--------+                    ')
+        print("                    | ESTADO |                    ")
+        print("+------------------------------------------------+")
+        print("|1. Estado de los libros                         |")
+        print("|2. Estado de los usuarios                       |")
+        print("|3. Volver                                       |")
+        print("+------------------------------------------------+")
+
+        opcion = input(" Seleccione una opción: ")
+
+        if opcion == '1':
+            status_books()
+        elif opcion == '2':
+            status_users()
+        elif opcion == '3':
+            return
+        else:
+            input(f"Opcion {opcion} invalida, por favor ingrese de nuevo. ")
+        
 def main():
     while True:
         crear_tablas()
@@ -599,18 +794,9 @@ def main():
         elif opcion == '2':
             menu_actualizar()    
         elif opcion == '3':
-            clear()
-            print("====== DEVOLUCIONES ======")
-            print("1. Devolver libro")
-            print("2. Volver")
-            print("===============================")
+            menu_devoluciones()
         elif opcion == '4':
-            clear()
-            print("====== ESTADO ======")
-            print("1. Estado Usuario")
-            print("2. Estado Libro")
-            print("3. Volver")
-            print("===============================")
+            menu_estado()
         elif opcion=='5':
             clear()
             input("Saliendo del programa...")
