@@ -27,3 +27,9 @@ password=''
 ```
 
 Si no tiene una contraseña asignada mantenga ese campo vacío.
+
+![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://myoctocat.com/assets/images/base-octocat.svg)
+
+Y listo! Ya tiene todo preparado para que su gestor de biblioteca funcione correctamente.
+Estamos atentos a cualquier reporte de bugs o errores en el código. Puede enviar su reporte a [santiagord32@gmail.com](mailto:santiagord32@gmail.com)
+
