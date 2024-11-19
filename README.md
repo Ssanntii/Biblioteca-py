@@ -8,4 +8,4 @@
  CREATE DATABASE BIBLIOTECA;
  ```
 
-## 2. Instalar las dependencias del código utilizando ["dep.txt"]()
+## 2. Instalar las dependencias del código utilizando ["dep.txt"](https://github.com/Database-I-project/Biblioteca/blob/main/dep.txt)
