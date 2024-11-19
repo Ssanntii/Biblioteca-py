@@ -35,5 +35,6 @@ Estamos atentos a cualquier reporte de bugs o errores en el código. Puede envia
 
 ### DEVELOPERS:
 ![Santiago Ruiz Diaz AKA Santutu](images/1aae0720-1d83-46af-89af-9cb1eeed0f51.jfif)
+Santiago Ruiz Diaz AKA Santutu
 
 
