@@ -33,3 +33,7 @@ Si no tiene una contraseña asignada mantenga ese campo vacío.
 Y listo! Ya tiene todo preparado para que su gestor de biblioteca funcione correctamente.
 Estamos atentos a cualquier reporte de bugs o errores en el código. Puede enviar su reporte a [santiagord32@gmail.com](mailto:santiagord32@gmail.com)
 
+### DEVELOPERS:
+![Santiago Ruiz Diaz AKA Santutu](images/1aae0720-1d83-46af-89af-9cb1eeed0f51.jfif)
+
+
