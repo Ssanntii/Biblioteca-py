@@ -4,6 +4,8 @@
  Por ejemplo:
  
  mysql
- ```
+ ```mysql
  CREATE DATABASE BIBLIOTECA;
  ```
+
+## 2. Instalar las dependencias del código utilizando ["dep.txt"]()
