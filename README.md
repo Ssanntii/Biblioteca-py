@@ -35,6 +35,11 @@ Estamos atentos a cualquier reporte de bugs o errores en el código. Puede envia
 
 ### DEVELOPERS:
 ![Santiago Ruiz Diaz AKA Santutu](images/1aae0720-1d83-46af-89af-9cb1eeed0f51.jfif)
+
 Santiago Ruiz Diaz AKA Santutu
+
+![Valentin Bressan AKA El Chililero](images/8a79079e-3c5f-471e-a0f1-5591a8e8e1b1.jfif)
+
+Valentin Bressan AKA El Chililero
 
 
