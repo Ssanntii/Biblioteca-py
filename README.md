@@ -14,3 +14,16 @@
   ```powershell
   pip install -r dep.txt
   ```
+
+## 3. Cambiar las variables globales en el programa:
+  Dentro del programa en las primeras líneas se puede visualizar 5 variables globales que se utilizan para la conexión a la base de datos sql:
+
+```python
+host='localhost'
+port=3306
+user='root'
+database='biblioteca'
+password=''
+```
+
+Si no tiene una contraseña asignada mantenga ese campo vacío.
