@@ -9,7 +9,7 @@
  ```
 
 ## 2. Instalar las dependencias del código utilizando ["dep.txt"](https://github.com/Database-I-project/Biblioteca/blob/main/dep.txt)
-  Para instalar las dependencias lo podemos hacer directamente desde VSCode o nuestra consola:
+  Para instalar las dependencias debe descargar el archivo ["*dep.txt*"](https://github.com/Database-I-project/Biblioteca/blob/main/dep.txt) y luego instalarlas desde una consola:
   
   ```powershell
   pip install -r dep.txt
